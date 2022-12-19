@@ -50,6 +50,12 @@ if(metamotion_mac_address == " " or bluetooth_adapter_mac_address == " " or devi
 
 if sys.version_info[0] == 2:
     range = xrange
+
+# -------------------------------------------------------------------------------
+#
+#   FUNCTIONS TO WRITE THE DATA OF EACH SENSOR IN SEPARATE FILES :)
+#
+# -------------------------------------------------------------------------------
     
 # acc callback
 def acc_data_handler(ctx, data):
@@ -100,8 +106,13 @@ magCallback = FnVoid_VoidP_DataP(mag_data_handler)
 tempCallback = FnVoid_VoidP_DataP(temp_data_handler)
 pressCallback = FnVoid_VoidP_DataP(press_data_handler)
 
-# create files
-# filename = "output/acc_" + device_name + ".csv"
+
+# -------------------------------------------------------------------------------
+#
+#   CREATING THE FILES USING THE TIME TO GIVE DIFERENT NAMES :)
+#
+# -------------------------------------------------------------------------------
+
 
 initial_time = str(int(time.time()))
 
@@ -119,10 +130,6 @@ filename = (os.getcwd() + "/output/" + initial_time + "/" + initial_time + "gyro
 gyroFile = open(filename, "w")
 gyroFile.write("epoch,valueX,valueY,valueZ\n")
 
-
-# filename = "output/mag_" + device_name + ".csv"
-# magFile = open(filename, "w")
-# magFile.write("epoch,valueX,valueY,valueZ\n")
 
 # define a regular expression to take axes from the output - will match all floats
 r = re.compile("[+-]?[0-9]*[.][0-9]+")
@@ -145,8 +152,8 @@ sleep(2.0)
 #libmetawear.mbl_mw_acc_get_packed_acceleration_data_signal(d.board)
 
 #Set output data rate for the Bosch sensor. Only some values are allowed and defined in the .h
-libmetawear.mbl_mw_acc_bmi160_set_odr(d.board, AccBmi160Odr._100Hz) # BMI 270 specific call trocar para 160 ou generico NAO USAR GENERICO
-#Set the range for the Bosch sensor. Default value to 0-4g.
+libmetawear.mbl_mw_acc_bmi160_set_odr(d.board, AccBmi160Odr._100Hz) # BMI 270 specific call , change to 160 , just dont use the generic
+#Set the range for the Bosch sensor. Default value to 0-16g.                                                 # it doesnt works in high frequencies
 libmetawear.mbl_mw_acc_bosch_set_range(d.board, AccBoschRange._16G)
 #Applies ODR and Range to the sensor.
 libmetawear.mbl_mw_acc_write_acceleration_config(d.board)
@@ -193,7 +200,6 @@ libmetawear.mbl_mw_gyro_bmi160_start(d.board)
 
 # sleep
 #sleep(sampling_time) # remove the '#'' if you want to use time to limit the data colect
-
 
 
 # stop
@@ -245,10 +251,12 @@ print("GYR -> %d" % (gyrosamples))
 gyroFile.close()
 accFile.close()
 
-    
-# Copiar os samples de um arquivo para outro, colocar acelerometro do lado direito do gyro
+# -------------------------------------------------------------------------------
+#
+#   READING THE FILES AND CREATING ONE WITH THE DATA FROM GYRO AND ACC :)
+#
+# -------------------------------------------------------------------------------   
 
-print(os.getcwd())
 
 df_acc = pd.read_csv(os.getcwd() + "/output/" + initial_time + "/" + initial_time + "acc.csv",sep=',')
 df_gyro = pd.read_csv(os.getcwd() + "/output/" + initial_time + "/" + initial_time + "gyro.csv",sep=',')
@@ -294,7 +302,14 @@ df_gyro=df_gyro.dropna().reset_index(drop=True)
 df_gyro.to_csv(os.getcwd() + "/output/" + initial_time + "/" + initial_time + 'gyro_plus_acc.csv',index=False)
 
 
+# -------------------------------------------------------------------------------
+#
+#   NOW, THAT FILE WILL BE THE INPUT TO THE GAIT-TRACKING ALGORITHM :)
+#
+# ------------------------------------------------------------------------------- 
 
+# THE COMENTS IN THE CODE BELOW IS JUST TO DONT PLOT GRAPHS ABOUT THE DATA COLECTION, T
+# HE CODE WITH THIS COMENTS WILL PLOT JUST THE SENSOR PATH.
 
 from dataclasses import dataclass
 from matplotlib import animation
